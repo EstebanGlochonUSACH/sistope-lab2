@@ -28,7 +28,7 @@ Total de expresiones que No son regulares:6
 Total de lineas leídas:9
 ```
 
-## Lógica de la sólucion
+## Lógica de la solución
 
 En este laboratorio crearemos un "reconocedor", que en base a una expresión regular y a un archivo de texto, diga si cada expresión es una expresión regular o no.
 
@@ -44,7 +44,7 @@ En este laboratorio crearemos un "reconocedor", que en base a una expresión reg
 10. Una vez que todos los workers hayan terminado sus cálculos, el broker retomará el control y escribirá en el archivo de salida los resultados siguiendo el formato entregado. Si se utiliza la bandera -b, estos resultados deberán además aparecer en la salida estándar (`stdout`) del terminal del Sistema Operativo incluyendo con ellos la cantidad de líneas que procesó cada worker (basta con mostrar el PID del worker o con una ID arbitraria asignada al mismo). Con esto, el padre finaliza su ejecución.
 11. Tanto proceso padre, proceso broker y proceso worker debe encontrarse finalizado a la hora de terminar el programa.
 
-## Ejecucion
+## Ejecución
 
 El programa se ejecutará usando los siguientes argumentos (ejemplo):
 ```
@@ -59,7 +59,7 @@ $ ./lab1 -i datos_juegos.csv -o salida.txt -b
 Como requerimientos no funcionales, se exige lo siguiente:
 - Debe funcionar en sistemas operativos con kernel Linux.
 - Debe ser implementado en lenguaje de programación C.
-- Se debe utilizar un archivo Makefile para compilar los distintos targets.
+- Se debe utilizar un archivo `Makefile` para compilar los distintos targets.
 - Realizar el programa utilizando buenas prácticas, dado que este laboratorio no contiene manual de usuario ni informe, es necesario que todo esté debidamente comentado.
 - Los programas se encuentren desacoplados, es decir, que se desarrollen las funciones correspondientes en otro archivo .c para mayor entendimiento de la ejecución.
 - La solución debe implementar `fork()`, `excec()`, `dup2()` y `pipe()`. De lo contrario se considerara
