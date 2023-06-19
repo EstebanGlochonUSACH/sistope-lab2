@@ -4,6 +4,12 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdbool.h>
+
+// Entradas: recibe un script con la ruta al archivo.
+// Salidas: Retorna "true" o "false" dependiendo de si el archivo existe.
+// Descripción: Comprueba si un archivo existe.
+bool file_exists(char *filename);
 
 // Descripción: Estructura que contiene los parameros del programa.
 struct _params {
@@ -12,6 +18,8 @@ struct _params {
 	char file_out[100];
 	int has_file_out;
 	int flag_verbose;
+	int total_workers;
+	int chunk_size;
 };
 typedef struct _params params_t;
 
@@ -22,18 +30,5 @@ typedef struct _params params_t;
 //              o flags booleanos para guardarlos en una estructura especial que va
 //              a contener toda esa información.
 void parse_params(params_t *params, int argc, char *argv[]);
-
-// Entradas: Recibe los mismos parametros que "fprintf", junto con un "flag".
-// Salidas: No retorna. Se espera que la funcion escriba en un archivo y opcionalmente
-//          imprima texto en la terminal.
-// Descripción: Recibe los mismos parametros que "fprintf" para poder escribir texto
-//              en un archivo. El flag "flag_verbose" sirve ademas, para habilitar
-//              la escritura de la misma informacion en el STDOUT del proceso. 
-void dup_printf(int flag_verbose, FILE *f, char const *fmt, ...);
-
-// Entradas: Recibe "string" (arreglo de carácteres).
-// Salidas: Retorna el mismo puntero del arreglo de caracteres.
-// Descripción: Remueve todos los carácteres "blancos" del inicio y final del string.
-char *strtrim(char *s);
 
 #endif
