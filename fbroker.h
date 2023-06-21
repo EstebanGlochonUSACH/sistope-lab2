@@ -11,9 +11,4 @@
 //              la escritura de la misma informacion en el STDOUT del proceso. 
 void dup_printf(bool flag_verbose, FILE *f, char const *fmt, ...);
 
-// Entradas: Recibe "string" (arreglo de carácteres).
-// Salidas: Retorna el mismo puntero del arreglo de caracteres.
-// Descripción: Remueve todos los carácteres "blancos" del inicio y final del string.
-char *strtrim(char *s);
-
 #endif

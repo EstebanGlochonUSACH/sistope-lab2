@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <regex.h>
 #include <stdbool.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -34,19 +33,12 @@ int main(int argc, char *argv[])
 	}
 
 	FILE *fp_input, *fp_output;
-	regex_t re;
-	static const char *pattern = "^(A|C|T)*G+T+C(A|C|G|T)*$";
 	size_t total_workers = 0, chunk_size = 0;
 	pid_t fork_pid;
 	bool flag_verbose = false;
 	worker_t *children;
 	worker_t tmp_worker;
 	int i;
-
-	if (regcomp(&re, pattern, REG_EXTENDED|REG_NOSUB) != 0) {
-		fprintf(stderr, "Error: El patron regex no pudo ser compilado!\n");
-		return 1;
-	}
 	
 	if((fp_input = fopen(argv[1], "r")) == NULL){
 		fprintf(stderr, "Error: No se pudo acceder al archivo de entrada!\n");
@@ -70,7 +62,6 @@ int main(int argc, char *argv[])
 		tmp_worker.n_tasks = 0;
 		if(pipe(tmp_worker.fd_b2w) == -1){
 			fprintf(stderr, "Error: No se pudo crear el pipe en el borker!\n");
-			regfree(&re);
 			fclose(fp_input);
 			fclose(fp_output);
 			free(children);
@@ -78,7 +69,6 @@ int main(int argc, char *argv[])
 		}
 		if(pipe(tmp_worker.fd_w2b) == -1){
 			fprintf(stderr, "Error: No se pudo crear el pipe en el borker!\n");
-			regfree(&re);
 			fclose(fp_input);
 			fclose(fp_output);
 			free(children);
@@ -138,17 +128,6 @@ int main(int argc, char *argv[])
 			current_worker = (current_worker + 1) % total_workers;
 			chunk_counter = chunk_counter % chunk_size;
 		}
-
-		// match_status = regexec(&re, line, (size_t)0, NULL, 0);
-		// dup_printf(flag_verbose, fp_output, "%s", line);
-		// if (match_status == 0) {
-		// 	counter_match += 1;
-		// 	dup_printf(flag_verbose, fp_output, " si\n");
-		// }
-		// else{
-		// 	counter_no_match += 1;
-		// 	dup_printf(flag_verbose, fp_output, " no\n");
-		// }
 	}
 
 	// Send "FIN" to workers
@@ -203,7 +182,6 @@ int main(int argc, char *argv[])
 	}
 
 	free(children);
-	regfree(&re);
 	fclose(fp_input);
 	fclose(fp_output);
 	return 0;
