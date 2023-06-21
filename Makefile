@@ -1,5 +1,7 @@
 FLAGS = -Wall
 
+all: main broker worker
+
 main: lab2.c funciones.o
 	gcc $(FLAGS) -o lab2 lab2.c funciones.o
 
