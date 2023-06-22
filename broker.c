@@ -25,9 +25,14 @@ bool str_endswith(const char *str, const char *suffix)
     return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
 }
 
+void free_workers(worker_t **workers, size_t total){
+	for(int i = 0; i < total; ++i) free(workers[i]);
+	free(workers);
+}
+
 int main(int argc, char *argv[])
 {
-	if(argc != 5){
+	if(argc != 6){
 		fprintf(stderr, "Error: Parámetros incorrectos en broker!\n");
 		return 1;
 	}
@@ -36,8 +41,8 @@ int main(int argc, char *argv[])
 	size_t total_workers = 0, chunk_size = 0;
 	pid_t fork_pid;
 	bool flag_verbose = false;
-	worker_t *children;
-	worker_t tmp_worker;
+	worker_t **children;
+	worker_t *tmp_worker;
 	int i;
 	
 	if((fp_input = fopen(argv[1], "r")) == NULL){
@@ -55,73 +60,70 @@ int main(int argc, char *argv[])
 
 	total_workers = atoi(argv[4]);
 	chunk_size = atoi(argv[5]);
-	children = (worker_t*)malloc(sizeof(worker_t) * total_workers);
+	children = (worker_t**)malloc(sizeof(worker_t*) * total_workers);
 
 	for(i = 0; i < total_workers; ++i){
-		tmp_worker = children[i];
-		tmp_worker.n_tasks = 0;
-		if(pipe(tmp_worker.fd_b2w) == -1){
+		tmp_worker = (worker_t*)malloc(sizeof(worker_t));
+		tmp_worker->n_tasks = 0;
+		if(pipe(tmp_worker->fd_b2w) == -1 || pipe(tmp_worker->fd_w2b) == -1){
 			fprintf(stderr, "Error: No se pudo crear el pipe en el borker!\n");
 			fclose(fp_input);
 			fclose(fp_output);
-			free(children);
-			return 1;
-		}
-		if(pipe(tmp_worker.fd_w2b) == -1){
-			fprintf(stderr, "Error: No se pudo crear el pipe en el borker!\n");
-			fclose(fp_input);
-			fclose(fp_output);
-			free(children);
-			return 1;
+			free_workers(children, total_workers);
+			exit(EXIT_FAILURE);
 		}
 		fork_pid = fork();
-		if(fork_pid == 0){
+		if(fork_pid == -1){
+			fprintf(stderr, "Error: No se pudo crear el fork en el borker!\n");
+			fclose(fp_input);
+			fclose(fp_output);
+			free_workers(children, total_workers);
+			exit(EXIT_FAILURE);
+		}
+		else if(fork_pid == 0){
 			// Fork: Worker
             close(STDIN_FILENO);
-            dup(tmp_worker.fd_b2w[0]);
-            close(tmp_worker.fd_b2w[1]);
-            close(tmp_worker.fd_b2w[0]);
+            dup(tmp_worker->fd_b2w[0]);
+            close(tmp_worker->fd_b2w[1]);
+            close(tmp_worker->fd_b2w[0]);
 
             close(STDOUT_FILENO);
-            dup(tmp_worker.fd_w2b[1]);
-            close(tmp_worker.fd_w2b[0]);
-            close(tmp_worker.fd_w2b[1]);
+            dup(tmp_worker->fd_w2b[1]);
+            close(tmp_worker->fd_w2b[0]);
+            close(tmp_worker->fd_w2b[1]);
 
 			char *argv[] = {"./worker", NULL};
 			execvp(argv[0], argv);
+
+			// In case or error:
+			fclose(fp_input);
+			fclose(fp_output);
+			free_workers(children, total_workers);
 			fprintf(stderr, "Error: No se pudo realizar execvp en broker!\n");
-			return 1;
+			exit(EXIT_FAILURE);
 		}
 		else{
 			// Fork: Borker
-			tmp_worker.pid = fork_pid;
-            close(tmp_worker.fd_w2b[1]);
-            close(tmp_worker.fd_b2w[0]);
+			tmp_worker->pid = fork_pid;
+			close(tmp_worker->fd_b2w[0]);
+			close(tmp_worker->fd_w2b[1]);
 		}
+		children[i] = tmp_worker;
 	}
 
 	// Read lines from input file
 	char line_buffer[4096];
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
 	int counter_match = 0, counter_no_match = 0, counter_total = 0;
 	int current_worker = 0;
 	int chunk_counter = 0;
 
-	while ((read = getline(&line, &len, fp_input)) != -1) {
+	while (fgets(line_buffer, sizeof(line_buffer), fp_input) != NULL) {
 		counter_total += 1;
-
 		tmp_worker = children[current_worker];
-		if(!str_endswith(line, "\n")){
-			strcpy(line_buffer, line);
-			strcat(line_buffer, "\n");
-			write(tmp_worker.fd_b2w[1], line_buffer, len+1);
-		}
-		else{
-			write(tmp_worker.fd_b2w[1], line, len);
-		}
-		tmp_worker.n_tasks += 1;
+
+		if(!str_endswith(line_buffer, "\n")) strcat(line_buffer, "\n");
+		write(tmp_worker->fd_b2w[1], line_buffer, strlen(line_buffer));
+		tmp_worker->n_tasks += 1;
 
 		chunk_counter += 1;
 		if(chunk_counter == chunk_size){
@@ -131,27 +133,27 @@ int main(int argc, char *argv[])
 	}
 
 	// Send "FIN" to workers
-	strcpy(line_buffer, "FIN\n");
 	for(i = 0; i < total_workers; ++i){
-		write(children[i].fd_b2w[1], line_buffer, 10);
+		tmp_worker = children[i];
+		write(tmp_worker->fd_b2w[1], "FIN\n", 4);
 	}
 
 	// Read Results from workers
 	int n_results;
 	int counter_total2 = 0;
-	FILE* pipe_fp;
+	FILE *fp_read;
 	for(i = 0; i < total_workers; ++i){
 		tmp_worker = children[i];
 		n_results = 0;
-		pipe_fp = fdopen(tmp_worker.fd_w2b[0], "r");
-		while(fgets(line_buffer, sizeof(line_buffer), pipe_fp) != 0){
-			dup_printf(flag_verbose, fp_output, line_buffer);
+		fp_read = fdopen(tmp_worker->fd_w2b[0], "r");
+		while(fgets(line_buffer, sizeof(line_buffer), fp_read) != NULL){
+			dup_printf(flag_verbose, fp_output, "%s", line_buffer);
 			n_results += 1;
 			if(str_endswith(line_buffer, " si\n")) counter_match += 1;
 			else if(str_endswith(line_buffer, " no\n")) counter_no_match += 1;
 		}
-		fclose(pipe_fp);
-		tmp_worker.n_results = n_results;
+		fclose(fp_read);
+		tmp_worker->n_results = n_results;
 		counter_total2 += n_results;
 	}
 
@@ -171,17 +173,17 @@ int main(int argc, char *argv[])
 		tmp_worker = children[i];
 		dup_printf(flag_verbose, fp_output,
 			"[Worker #%0*d, PID=%ld] Total de expresiones leídas:%d\n",
-			zeropad, i+1, (long)tmp_worker.pid, tmp_worker.n_tasks
+			zeropad, i+1, (long)tmp_worker->pid, tmp_worker->n_tasks
 		);
 		dup_printf(flag_verbose, fp_output,
 			"[Worker #%0*d, PID=%ld] Total de expresiones procesadas:%d\n",
-			zeropad, i+1, (long)tmp_worker.pid, tmp_worker.n_results
+			zeropad, i+1, (long)tmp_worker->pid, tmp_worker->n_results
 		);
-		close(tmp_worker.fd_w2b[0]);
-		close(tmp_worker.fd_b2w[1]);
+		close(tmp_worker->fd_w2b[0]);
+		close(tmp_worker->fd_b2w[1]);
 	}
 
-	free(children);
+	free_workers(children, total_workers);
 	fclose(fp_input);
 	fclose(fp_output);
 	return 0;
