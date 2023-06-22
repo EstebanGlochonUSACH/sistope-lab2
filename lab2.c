@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	}
 
 	pid_t pid = fork();
-	if(pid < 0){
+	if(pid == -1){
 		fprintf(stderr, "Error: No se pudo realizar fork!\n");
 		return 1;
 	}
@@ -63,12 +63,14 @@ int main(int argc, char *argv[])
 		else strcpy(flag_verbose, "false");
 		char *argv[] = {"./broker", params.file_in, params.file_out, flag_verbose, total_workers, chunk_size, NULL};
 		execvp(argv[0], argv);
+
+		// In case of error
 		fprintf(stderr, "Error: No se pudo realizar execvp!\n");
 		return 1;
 	}
 	
 	// Fork: Parent
-	while(wait(NULL) > 0);
-
-	return 0;
+    int status;
+	waitpid(pid, &status, 0);
+	return WEXITSTATUS(status);
 };
