@@ -1,19 +1,24 @@
 #ifndef _H_BROKER_FUNCIONES
 #define _H_BROKER_FUNCIONES
 
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdbool.h>
 
-// Entradas: Recibe los mismos parametros que "fprintf", junto con un "flag".
-// Salidas: No retorna. Se espera que la funcion escriba en un archivo y opcionalmente
-//          imprima texto en la terminal.
-// Descripción: Recibe los mismos parametros que "fprintf" para poder escribir texto
-//              en un archivo. El flag "flag_verbose" sirve ademas, para habilitar
-//              la escritura de la misma informacion en el STDOUT del proceso. 
+typedef struct {
+	pid_t pid;
+	int n_tasks;
+	int n_results;
+	int fd_b2w[2];
+	int fd_w2b[2];
+} worker_t;
+
+void free_workers(worker_t **workers, size_t total);
+
 void dup_printf(bool flag_verbose, FILE *f, char const *fmt, ...);
 
-// Entradas: Recibe "string" (arreglo de carácteres).
-// Salidas: Retorna el mismo puntero del arreglo de caracteres.
-// Descripción: Remueve todos los carácteres "blancos" del inicio y final del string.
+bool str_endswith(const char *str, const char *suffix);
+
 char *strtrim(char *s);
 
 #endif

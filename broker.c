@@ -6,30 +6,6 @@
 #include <sys/wait.h>
 #include "fbroker.h"
 
-typedef struct {
-	pid_t pid;
-	int n_tasks;
-	int n_results;
-	int fd_b2w[2];
-	int fd_w2b[2];
-} worker_t;
-
-bool str_endswith(const char *str, const char *suffix)
-{
-    if (!str || !suffix)
-        return false;
-    size_t lenstr = strlen(str);
-    size_t lensuffix = strlen(suffix);
-    if (lensuffix >  lenstr)
-        return false;
-    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
-}
-
-void free_workers(worker_t **workers, size_t total){
-	for(int i = 0; i < total; ++i) free(workers[i]);
-	free(workers);
-}
-
 int main(int argc, char *argv[])
 {
 	if(argc != 6){
