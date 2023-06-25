@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 // Descripción: Estructura que contiene datos relevantes para trabajar con un "worker".
 typedef struct {
