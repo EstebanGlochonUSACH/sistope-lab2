@@ -6,7 +6,6 @@
 int main(int argc, char *argv[])
 {
 	char line_buffer[4096];
-	// FILE* pipe_fp = fdopen(stdin, "r");
 	regex_t re;
 	static const char *pattern = "^(A|C|T)*G+T+C(A|C|G|T)*$";
 	int match_status;
