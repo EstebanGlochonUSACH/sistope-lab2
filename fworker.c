@@ -1,8 +1,8 @@
 #include <string.h>
 
-// Descripción: Comprueba si un caracter dado es de tipo "espacio".
 // Entradas:    Un character.
 // Salidas:     Retorna verdadero (1) o falso (0) dependiendo del caso.
+// Descripción: Comprueba si un caracter dado es de tipo "espacio".
 int is_space(char c){
 	return((c >= 0 && c <=32) || c == 127);
 };

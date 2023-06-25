@@ -6,9 +6,9 @@
 #include <sys/stat.h>
 #include <limits.h>
 
-// Descripción: Comprueba si un archivo existe.
 // Entradas:    Recibe la ruta del archivo.
 // Salidas:     Retorna verdadero o falso dependiendo de si el archivo existe.
+// Descripción: Comprueba si un archivo existe.
 bool file_exists(char *filename){
 	struct stat buffer;   
 	return(stat(filename, &buffer) == 0);
@@ -25,12 +25,12 @@ typedef struct {
 	int chunk_size;
 } params_t;
 
-// Descripción: Procesa los parameros que recibe el main, en forma de valores string
-//              o flags booleanos para guardarlos en una estructura especial que va
-//              a contener toda esa información.
 // Entradas:    Recibe una estructura donde guardar los paramatros de entrada junto
 //              con los mismos parameros que recibe la funcion main.
 // Salidas:     No retorna. Guarda información en la estructura "params".
+// Descripción: Procesa los parameros que recibe el main, en forma de valores string
+//              o flags booleanos para guardarlos en una estructura especial que va
+//              a contener toda esa información.
 void parse_params(params_t *params, int argc, char *argv[])
 {
 	int option;

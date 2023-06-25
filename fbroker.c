@@ -15,21 +15,21 @@ typedef struct {
 	int fd_w2b[2];
 } worker_t;
 
-// Descripción: Una función auxiliar que ayuda a liberar la memoria de un arreglo
-//              de workers (worker_t).
 // Entradas:    El arreglo de workers y el tamaño de este.
 // Salidas:     No retorna.
+// Descripción: Una función auxiliar que ayuda a liberar la memoria de un arreglo
+//              de workers (worker_t).
 void free_workers(worker_t **workers, size_t total){
 	for(int i = 0; i < total; ++i) free(workers[i]);
 	free(workers);
 }
 
-// Descripción: Recibe los mismos parametros que "fprintf" para poder escribir texto
-//              en un archivo. El flag "flag_verbose" sirve ademas, para habilitar
-//              la escritura de la misma informacion en el STDOUT del proceso. 
 // Entradas:    Recibe los mismos parametros que "fprintf", junto con un "flag".
 // Salidas:     No retorna. Se espera que la funcion escriba en un archivo y opcionalmente
 //              imprima texto en la terminal.
+// Descripción: Recibe los mismos parametros que "fprintf" para poder escribir texto
+//              en un archivo. El flag "flag_verbose" sirve ademas, para habilitar
+//              la escritura de la misma informacion en el STDOUT del proceso.
 void dup_printf(bool flag_verbose, FILE *f, char const *fmt, ...) { 
     va_list ap;
     if(flag_verbose){
@@ -42,9 +42,9 @@ void dup_printf(bool flag_verbose, FILE *f, char const *fmt, ...) {
     va_end(ap);
 };
 
-// Descripción: Comprueba si un string termina con otro string dado.
 // Entradas:    El string a comprobar y el string que representa el "sufijo".
 // Salidas:     Retorna verdadero o falso dependiendo del caso.
+// Descripción: Comprueba si un string termina con otro string dado.
 bool str_endswith(const char *str, const char *suffix)
 {
     if (!str || !suffix)
@@ -56,16 +56,16 @@ bool str_endswith(const char *str, const char *suffix)
     return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
 }
 
-// Descripción: Comprueba si un caracter dado es de tipo "espacio".
 // Entradas:    Un character.
 // Salidas:     Retorna verdadero o falso dependiendo del caso.
+// Descripción: Comprueba si un caracter dado es de tipo "espacio".
 bool is_space(char c){
 	return((c >= 0 && c <=32) || c == 127);
 };
 
-// Descripción: Remueve todos los carácteres "blancos" del inicio y final del string.
 // Entradas:    Recibe "string" (arreglo de carácteres).
 // Salidas:     Retorna el mismo puntero del arreglo de caracteres.
+// Descripción: Remueve todos los carácteres "blancos" del inicio y final del string.
 char *strtrim(char *s) {
 	int start_index = 0;
 	int end_index = strlen(s);
